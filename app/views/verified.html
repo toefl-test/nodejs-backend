@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Email Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .message {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="message">
+        <h1 class="status"></h1>
+        <p class="detail"></p>
+    </div>
+
+    <script>
+        // Get the verification status from the URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const status = urlParams.get('status');
+
+        // Display the appropriate message based on the verification status
+        const statusElement = document.querySelector('.status');
+        const detailElement = document.querySelector('.detail');
+        if (status === 'success') {
+            statusElement.textContent = 'Email Verification Successful';
+            statusElement.classList.add('success');
+            detailElement.textContent = 'Your email has been successfully verified.';
+        } else {
+            statusElement.textContent = 'Email Verification Failed';
+            statusElement.classList.add('error');
+            detailElement.textContent = 'An error occurred while verifying your email. Please try again.';
+        }
+    </script>
+</body>
+</html>
