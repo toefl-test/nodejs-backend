@@ -19,6 +19,9 @@ app.use(
 );
 app.use(cookieParser())
 app.use(helmet())
+app.use(fileUpload({
+  createParentPath: true
+}));
 
 
 app.get("/", (req, res) => {

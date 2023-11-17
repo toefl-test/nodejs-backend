@@ -1,5 +1,6 @@
 module.exports = app => {
     const accounts = require("../controller/account.controller.js");
+    const exams = require("../controller/exam.controllor.js");
     var guard = require('express-jwt-permissions')()
 
     var router = require("express").Router();
@@ -27,6 +28,14 @@ module.exports = app => {
     router.get("/checkDateAvailability", accounts.checkDateAvailability);
 
     router.get("/getAllDateAvailability", accounts.getAllDateAvailability);
+
+    router.post("/uploadImage", accounts.uploadImage);
+
+    router.post("/registerExam", exams.registerExam);
+
+    router.get("/profile/:id", accounts.profile);
+
+    router.post("/updateProfile/:id", accounts.updateProfile);
 
     // router.get("/all", accounts.findAll);
 

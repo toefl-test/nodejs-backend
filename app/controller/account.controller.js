@@ -62,12 +62,9 @@ exports.register = (req, res, next) => {
 
 exports.registerEmail = (req, res, next) => {
     try {
-        let { name, surname, email, password} = req.body;
-
-        console.log(req.body)
+        let { name, surname, email, password, phone} = req.body;
 
         const hashed_password = md5(password.toString())
-        console.log(password)
         const checkEmail = `SELECT Email FROM Accounts WHERE Email = ?`;
         con.query(checkEmail, [email], (err, result, fields) => {
             if (!result.length) {
@@ -75,25 +72,18 @@ exports.registerEmail = (req, res, next) => {
                 if(!token){
                     return res.status(400).send("token not created");
                 }
-                const sql = `Insert Into Accounts (Name, Surname, Email, Password, token) VALUES ( ?, ?, ?, ?, ?)`
-                con.query(sql, [name, surname, email, hashed_password, token], (err, result, fields) => {
+                const sql = `Insert Into Accounts (Name, Surname, Email, Password, token, phone) VALUES ( ?, ?, ?, ?, ?, ?)`
+                con.query(sql, [name, surname, email, hashed_password, token, phone], (err, result, fields) => {
                     if (err) {
-                        res.send({ status: 0, data: err });
+                        res.status(400).send({ error: err });
                     } else {
-
-                        // Move the uploaded image to our upload folder
-                        if(req.files && image){
-                            let imgPath = path.join(uploadPath, email+'.jpg');
-                            image.mv(imgPath);
-                        }
-
                         sendingMail({
                             from: "no-reply@toefl-test.uz",
                             to: `${email}`,
                             subject: "Account Confirmation",
                             text: `Hello ${name}, Your account has been created!`,
                         });
-                        return res.status(201).send({ message: "Your account has been created" });
+                        return res.status(201).send({ result: result, message: "Your account has been created" });
                     }
                 })
             } else {
@@ -108,15 +98,28 @@ exports.registerEmail = (req, res, next) => {
 
 exports.uploadImage = (req, res) => {
     try {
-        const { id } = req.params;
+        const {country, identity_type, id } = req.body;
         const { image } = req.files;
-        if (req.files && !image.mimetype.startsWith('image')) return res.send({ status: 0, error: "File is not an image!" });
-        const sql = `UPDATE Accounts SET image = ? WHERE id = ?`;
-        con.query(sql, [image.name, id], (err, result, fields) => {
-            
+        if (req.files && !image.mimetype.startsWith('image')) return res.status(415).send({ error: "File is not an image!" });
+
+        // Move the uploaded image to our upload folder
+        if(req.files && image){
+            let imgPath = path.join(uploadPath, id + '.jpg');
+            image.mv(imgPath);
+        }
+
+        console.log(id, identity_type);
+
+        const updateSql = `UPDATE Accounts SET country = ?, identity_type = ? WHERE id = ?`;
+        con.query(updateSql, [country, identity_type, id], function(updateErr, updateResult) {
+            if(updateErr) {
+                res.status(500).send({ error: updateErr });
+            } else {
+                res.status(200).send({ message: "Succesffully uploaded!" });
+            }
         });
     } catch (error) {
-        res.status(404).send({ status: 0, error: error });
+        res.status(404).send({ error: error });
     }
 }
 
@@ -171,27 +174,14 @@ exports.checkEmailExistence = (req, res) => {
 }
 
 exports.image = (req, res) => {
-    const { email } = req.params;
-    console.log(email);
-    // const url = 'https://example.com/images/test.jpg';
-  
-    // request({
-    //   url: url,
-    //   encoding: null
-    // }, 
-    // (err, resp, buffer) => {
-    //   if (!err && resp.statusCode === 200){
-    //     res.set("Content-Type", "image/jpeg");
-    //     res.send(resp.body);
-    //   }
-    // });
-    let imgPath = path.join(uploadPath, email+'.jpg');
+    const { id } = req.body;
+    let imgPath = path.join(uploadPath, id+'.jpg');
     if (fs.existsSync(imgPath)) {
         res.sendFile(imgPath);
         return;
     }
     res.send()
-  }
+}
 
 exports.all = (req, res) => {
     try {
@@ -323,6 +313,8 @@ exports.resendVerificationEmail = (req, res) => {
     });
 }
 
+
+
 exports.allHtml = (req, res) => {
     try {
         const sql = `SELECT * FROM Accounts`
@@ -360,6 +352,50 @@ exports.delete = (req, res) => {
             });
     } catch (error) {
         res.send({ status: 0, error: error });
+    }
+}
+
+exports.profile = (req, res) => {
+    try {
+        const { id } = req.params;
+        const sql = `SELECT * FROM Accounts WHERE id = ?`
+        con.query(
+            sql, [id],
+            function (err, result, fields) {
+                if (err) {
+                    res.status(500).send({ data: err });
+                } else {
+                    if(!result.length){
+                        res.status(404).send({error: "User not found!"})
+                        return;
+                    }
+                    return res.status(200).send( result[0] );
+                }
+
+            });
+    } catch (error) {
+        res.send({ status: 0, error: error });
+    }
+}
+
+
+exports.updateProfile = (req, res) => {
+    try {
+        const {name, surname, email, phone } = req.body;
+        const { id } = req.params;
+
+        console.log(id, req.body);
+
+        const updateSql = `UPDATE Accounts SET Name = ?, Surname = ?, Email = ?, phone = ? WHERE id = ?`;
+        con.query(updateSql, [name, surname, email, phone, id], function(updateErr, updateResult) {
+            if(updateErr) {
+                res.status(500).send({ error: updateErr });
+            } else {
+                res.status(200).send({ message: "Succesffully Updated!" });
+            }
+        });
+    } catch (error) {
+        res.status(404).send({ error: error });
     }
 }
 
