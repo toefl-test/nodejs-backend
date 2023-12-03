@@ -138,7 +138,7 @@ exports.login = (req, res, next) => {
                     if(!result.length){
                         res.send({status: 0, error: "Email or password is incorrect!"})
                         return;
-                    } else if(result[0].is_verified == 0){
+                    } else if(result[0].is_verified === 0){
                         return res.status(401).send({error: "Please verify your email!"});
                     }
                     const options = {
@@ -281,36 +281,13 @@ exports.resendVerificationEmail = (req, res) => {
 
     let { email } = req.body;
 
-    // SQL query to get the token of the user
-    const sql = `SELECT name, token FROM Accounts WHERE email = ?`;
-    con.query(sql, [email], function(err, result) {
-        if (err) {
-            res.status(500).send({ status: 0, data: err });
-        } else {
-            if (result.length > 0) {
-                const token = result[0].token;
-
-                if (token) {
-                    //send email to the user
-                    //with the function coming from the mailing.js file
-                    //message containing the user id and the token to help verify their email
-                    sendingMail({
-                        from: "no-reply@toefl-uzbek.uz",
-                        to: `${email}`,
-                        subject: "Account Verification Link",
-                        text: `Hello, ${result[0].name} Please verify your email by
-                                clicking this link :
-                                ${process.env.url}/account/verify-email/${token} `,
-                    });
-                    return res.status(200).send({ message: 'Verification email sent' });
-                } else{
-                    return res.status(400).send("token not created");
-                }
-            } else {
-                res.status(404).send({ status: 0, data: { message: 'Email not found' } });
-            }
-        }
+    sendingMail({
+        from: "no-reply@toefl-test.uz",
+        to: `${email}`,
+        subject: "Account Verification Link",
+        text: `HI`,
     });
+    return res.status(200).send({email});
 }
 
 
@@ -381,17 +358,17 @@ exports.profile = (req, res) => {
 
 exports.updateProfile = (req, res) => {
     try {
-        const {name, surname, email, phone } = req.body;
+        const {name, surname, email, phone, gender, birthdate, country, agreeTerms } = req.body;
         const { id } = req.params;
 
         console.log(id, req.body);
 
-        const updateSql = `UPDATE Accounts SET Name = ?, Surname = ?, Email = ?, phone = ? WHERE id = ?`;
-        con.query(updateSql, [name, surname, email, phone, id], function(updateErr, updateResult) {
+        const updateSql = `UPDATE Accounts SET Name = ?, Surname = ?, Email = ?, phone = ?, gender = ?, birthdate = ?, country = ?, agreeTerms = ? WHERE id = ?`;
+        con.query(updateSql, [name, surname, email, phone, gender, birthdate, country, agreeTerms, id], function(updateErr, updateResult) {
             if(updateErr) {
                 res.status(500).send({ error: updateErr });
             } else {
-                res.status(200).send({ message: "Succesffully Updated!" });
+                res.status(200).send({ message: "Successfully Updated!" });
             }
         });
     } catch (error) {
