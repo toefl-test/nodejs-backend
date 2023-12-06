@@ -1,0 +1,38 @@
+name: Angular CI
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  build-and-deploy:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.20.1]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Deploy
+        uses: appleboy/scp-action@master
+        with:
+          host: toefl-test.uz
+          username: toefltes
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "*"
+          target: "/home/toefltes/domains/toefl-test.uz/api/"
+
+      - name: Move files
+        uses: appleboy/ssh-action@master
+        with:
+         host: toefl-test.uz
+         username: toefltes
+         key: ${{ secrets.SSH_PRIVATE_KEY }}
+         script: |
+          cd /home/toefltes/domains/toefl-test.uz/api/
+          mv * .
+

@@ -83,7 +83,7 @@ exports.registerEmail = (req, res, next) => {
                             subject: "Account Confirmation",
                             text: `Hello ${name}, Your account has been created!`,
                         });
-                        return res.status(201).send({ result: result, message: "Your account has been created" });
+                        return res.status(201).send({ result: result, token: token, message: "Your account has been created" });
                     }
                 })
             } else {
