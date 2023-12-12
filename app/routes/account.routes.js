@@ -17,7 +17,7 @@ module.exports = app => {
 
     router.get("/checkEmailExistence", accounts.checkEmailExistence);
 
-    router.get("/image/:email", accounts.image);
+    router.get("/image/:id", accounts.image);
 
     router.get("/all", accounts.all);
 
@@ -38,12 +38,6 @@ module.exports = app => {
     router.post("/updateProfile/:id", accounts.updateProfile);
 
     // router.get("/all", accounts.findAll);
-
-    // router.get("/published", accounts.findAllPublished);
-
-    // router.get("/:id", accounts.findOne);
-
-    // router.put("/:id", accounts.update);
 
     // router.delete("/:id", accounts.delete);
 
