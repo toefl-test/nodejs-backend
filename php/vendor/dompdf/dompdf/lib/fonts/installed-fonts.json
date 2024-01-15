@@ -1,0 +1,14 @@
+{
+    "rubikdoodleshadow": {
+        "normal": "vendor\/dompdf\/dompdf\/lib\/fonts\/RubikDoodleShadow-Regular",
+        "bold": "vendor\/dompdf\/dompdf\/lib\/fonts\/RubikDoodleShadow-Regular",
+        "italic": "vendor\/dompdf\/dompdf\/lib\/fonts\/RubikDoodleShadow-Regular",
+        "bold_italic": "vendor\/dompdf\/dompdf\/lib\/fonts\/RubikDoodleShadow-Regular"
+    },
+    "ptserif": {
+        "normal": "vendor\/dompdf\/dompdf\/lib\/fonts\/PTSerif-Regular",
+        "bold": "vendor\/dompdf\/dompdf\/lib\/fonts\/PTSerif-Bold",
+        "italic": "vendor\/dompdf\/dompdf\/lib\/fonts\/PTSerif-Italic",
+        "bold_italic": "vendor\/dompdf\/dompdf\/lib\/fonts\/PTSerif-Regular"
+    }
+}
