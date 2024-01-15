@@ -1,9 +1,9 @@
+const {verifyToken} = require("../services/auth.service");
+const accounts = require("../controller/account.controller.js");
+const exams = require("../controller/exam.controllor.js");
+var guard = require('express-jwt-permissions')();
+var router = require("express").Router();
 module.exports = app => {
-    const accounts = require("../controller/account.controller.js");
-    const exams = require("../controller/exam.controllor.js");
-    var guard = require('express-jwt-permissions')()
-
-    var router = require("express").Router();
 
     router.post("/register", accounts.register);
 
@@ -33,13 +33,9 @@ module.exports = app => {
 
     router.post("/registerExam", exams.registerExam);
 
-    router.get("/profile/:id", accounts.profile);
+    router.get("/profile/:id", verifyToken, accounts.profile);
 
     router.post("/updateProfile/:id", accounts.updateProfile);
-
-    // router.get("/all", accounts.findAll);
-
-    // router.delete("/:id", accounts.delete);
 
     app.use('/account', router);
 };

@@ -7,6 +7,7 @@ const uploadPath = path.join(__dirname, '..', '..', 'upload');
 const fs = require('fs');
 const uuid = require('uuid');
 const {sendingMail} = require('./mailing.controller');
+const {createToken} = require("../services/auth.service");
 
 // Create and Save a new Tutorial
 exports.register = (req, res, next) => {
@@ -16,12 +17,12 @@ exports.register = (req, res, next) => {
         const { image } = req.files;
         if (req.files && !image.mimetype.startsWith('image')) return res.send({ status: 0, error: "File is not an image!" });
 
-        const hashed_password = md5(password.toString())
+        const hashed_password = email
         const checkEmail = `SELECT Email FROM Accounts WHERE Email = ?`;
         con.query(checkEmail, [email], (err, result, fields) => {
             console.log(result)
             if (!result.length) {
-                let token = jwt.sign({ data: hashed_password }, 'secret');
+                let token = createToken(email, 'user');
                 const sql = `Insert Into Accounts (Name, Surname, Email, Password, exam_date, token) VALUES ( ?, ?, ?, ?, ?, ?)`
                 con.query(sql, [name, surname, email, hashed_password, date, token], (err, result, fields) => {
                     if (err) {
@@ -47,7 +48,6 @@ exports.register = (req, res, next) => {
                         } else{
                             return res.status(400).send("token not created");
                         }
-                        console.log("user", JSON.stringify(result, null, 2));
                         return res.status(201).send({ status: 1, data: result });
                     }
                 })
@@ -68,7 +68,7 @@ exports.registerEmail = (req, res, next) => {
         const checkEmail = `SELECT Email FROM Accounts WHERE Email = ?`;
         con.query(checkEmail, [email], (err, result, fields) => {
             if (!result.length) {
-                let token = jwt.sign({ data: hashed_password }, 'secret');
+                let token = createToken(email, 'user');
                 if(!token){
                     return res.status(400).send("token not created");
                 }
@@ -141,10 +141,7 @@ exports.login = (req, res, next) => {
                     } else if(result[0].is_verified === 0){
                         return res.status(401).send({error: "Please verify your email!"});
                     }
-                    const options = {
-                      expiresIn: "24h",
-                    };
-                    let token = jwt.sign({ data: result }, "secret", options)
+                    let token = createToken(email, result[0].permissions);
                     res.send({ status: 1, data: result[0], token: token });
                 }
 
@@ -190,7 +187,7 @@ exports.all = (req, res) => {
             sql, [],
             function (err, result, fields) {
                 if (err) {
-                    res.send({ status: 0, data: err });
+                    res.status(404).send({ status: 0, data: err });
                 } else {
                     res.send({ status: 1, data: result });
                 }
@@ -252,7 +249,6 @@ exports.verifyEmail = async(req, res) => {
                 } else {
                     if(result.length > 0) {
                         const usertoken = result[0].token;
-                        console.log(usertoken);
 
                         // New SQL query to update is_verified field
                         const updateSql = `UPDATE Accounts SET is_verified = 1 WHERE token = ?`;
@@ -360,8 +356,6 @@ exports.updateProfile = (req, res) => {
     try {
         const {name, surname, email, phone, gender, birthdate, country, agreeTerms } = req.body;
         const { id } = req.params;
-
-        console.log(id, req.body);
 
         const updateSql = `UPDATE Accounts SET Name = ?, Surname = ?, Email = ?, phone = ?, gender = ?, birthdate = ?, country = ?, agreeTerms = ? WHERE id = ?`;
         con.query(updateSql, [name, surname, email, phone, gender, birthdate, country, agreeTerms, id], function(updateErr, updateResult) {

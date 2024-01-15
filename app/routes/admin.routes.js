@@ -1,28 +1,15 @@
+const {verifyAdminToken} = require("../services/auth.service");
 module.exports = app => {
-    const tutorials = require("../controller/tutorial.controller.js");
-  
-    var router = require("express").Router();
+    const controller = require("../controller/admin.controller.js");
+
+    let router = require("express").Router();
   
     // Create a new Tutorial
-    router.post("/", tutorials.create);
-  
-    // Retrieve all Tutorials
-    router.get("/", tutorials.findAll);
-  
-    // Retrieve all published Tutorials
-    router.get("/published", tutorials.findAllPublished);
-  
-    // Retrieve a single Tutorial with id
-    router.get("/:id", tutorials.findOne);
-  
-    // Update a Tutorial with id
-    router.put("/:id", tutorials.update);
-  
-    // Delete a Tutorial with id
-    router.delete("/:id", tutorials.delete);
-  
-    // Delete all Tutorials
-    router.delete("/", tutorials.deleteAll);
-  
-    app.use('/tutorials', router);
+    router.get("/allAccounts", verifyAdminToken, controller.getAllUsers);
+    router.post("/updateAccount", verifyAdminToken, controller.updateAccountTable);
+    router.post("/deleteAnyItem", verifyAdminToken, controller.deleteAnyRow);
+    router.post("/updateAnyItem", verifyAdminToken, controller.updateAnyRow);
+    router.post("/addAnyItem", verifyAdminToken, controller.addAnyRow);
+    router.post("/allAnyTable", verifyAdminToken, controller.allAnyTable);
+    app.use('/admin', router);
 };

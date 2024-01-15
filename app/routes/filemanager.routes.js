@@ -4,7 +4,9 @@ module.exports = app => {
 
     var router = require("express").Router();
 
-    router.get("/agreement/:id", filemanager.agreement);
+    router.get("/agreement/:id", filemanager.agreementPHP);
+
+    router.get("/agreementtest", filemanager.agreementPHP);
 
     router.get("/signature", filemanager.signature);
 
