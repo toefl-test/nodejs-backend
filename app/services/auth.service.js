@@ -29,9 +29,10 @@ function verifyAdminToken(req, res, next) {
 
 
 
-function createToken(email, permissions){
+function createToken(id, email, permissions){
 
     const tokenPayload = {
+        id: id,
         email: email,
         permissions: permissions,
     };

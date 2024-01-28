@@ -5,7 +5,7 @@ var guard = require('express-jwt-permissions')();
 var router = require("express").Router();
 module.exports = app => {
 
-    router.post("/register", accounts.register);
+    // router.post("/register", accounts.register);
 
     router.post("/registerEmail", accounts.registerEmail);
 

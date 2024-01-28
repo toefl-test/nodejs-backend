@@ -72,7 +72,6 @@ exports.updateAnyRow = (req, res) => {
             }
         });
     } catch (error) {
-        throw error;
         return res.status(404).send({error: error});
     }
 }

@@ -10,55 +10,55 @@ const {sendingMail} = require('./mailing.controller');
 const {createToken} = require("../services/auth.service");
 
 // Create and Save a new Tutorial
-exports.register = (req, res, next) => {
-    try {
-        let { name, surname, email, password, date} = req.body;
-        // Get the file that was set to our field named "image"
-        const { image } = req.files;
-        if (req.files && !image.mimetype.startsWith('image')) return res.send({ status: 0, error: "File is not an image!" });
-
-        const hashed_password = email
-        const checkEmail = `SELECT Email FROM Accounts WHERE Email = ?`;
-        con.query(checkEmail, [email], (err, result, fields) => {
-            console.log(result)
-            if (!result.length) {
-                let token = createToken(email, 'user');
-                const sql = `Insert Into Accounts (Name, Surname, Email, Password, exam_date, token) VALUES ( ?, ?, ?, ?, ?, ?)`
-                con.query(sql, [name, surname, email, hashed_password, date, token], (err, result, fields) => {
-                    if (err) {
-                        res.send({ status: 0, data: err });
-                    } else {
-
-                        // Move the uploaded image to our upload folder
-                        if(req.files && image){
-                            let imgPath = path.join(uploadPath, email+'.jpg');
-                            image.mv(imgPath);
-                        }
-                        if (token) {
-                            //send email to the user
-                            //with the function coming from the mailing.js file
-                            //message containing the user id and the token to help verify their email
-                            sendingMail({
-                                from: "no-reply@toefl-test.uz",
-                                to: `${email}`,
-                                subject: "Account Verification Link",
-                                text: `Hello, ${name} Please verify your email by clicking this link :
-                                        ${process.env.url}/account/verify-email/${token} `,
-                            });
-                        } else{
-                            return res.status(400).send("token not created");
-                        }
-                        return res.status(201).send({ status: 1, data: result });
-                    }
-                })
-            } else {
-                res.send({status: 0, error: "Email already exist!"})
-            }
-        });
-    } catch (error) {
-        res.send({ status: 0, error: error });
-    }
-}
+// exports.register = (req, res, next) => {
+//     try {
+//         let { name, surname, email, password, date} = req.body;
+//         // Get the file that was set to our field named "image"
+//         const { image } = req.files;
+//         if (req.files && !image.mimetype.startsWith('image')) return res.send({ status: 0, error: "File is not an image!" });
+//
+//         const hashed_password = email
+//         const checkEmail = `SELECT Email FROM Accounts WHERE Email = ?`;
+//         con.query(checkEmail, [email], (err, result, fields) => {
+//             console.log(result)
+//             if (!result.length) {
+//                 let token = createToken(email, 'user');
+//                 const sql = `Insert Into Accounts (Name, Surname, Email, Password, exam_date, token) VALUES ( ?, ?, ?, ?, ?, ?)`
+//                 con.query(sql, [name, surname, email, hashed_password, date, token], (err, result, fields) => {
+//                     if (err) {
+//                         res.send({ status: 0, data: err });
+//                     } else {
+//
+//                         // Move the uploaded image to our upload folder
+//                         if(req.files && image){
+//                             let imgPath = path.join(uploadPath, email+'.jpg');
+//                             image.mv(imgPath);
+//                         }
+//                         if (token) {
+//                             //send email to the user
+//                             //with the function coming from the mailing.js file
+//                             //message containing the user id and the token to help verify their email
+//                             sendingMail({
+//                                 from: "no-reply@toefl-test.uz",
+//                                 to: `${email}`,
+//                                 subject: "Account Verification Link",
+//                                 text: `Hello, ${name} Please verify your email by clicking this link :
+//                                         ${process.env.url}/account/verify-email/${token} `,
+//                             });
+//                         } else{
+//                             return res.status(400).send("token not created");
+//                         }
+//                         return res.status(201).send({ status: 1, data: result });
+//                     }
+//                 })
+//             } else {
+//                 res.send({status: 0, error: "Email already exist!"})
+//             }
+//         });
+//     } catch (error) {
+//         res.send({ status: 0, error: error });
+//     }
+// }
 
 exports.registerEmail = (req, res, next) => {
     try {
@@ -68,15 +68,16 @@ exports.registerEmail = (req, res, next) => {
         const checkEmail = `SELECT Email FROM Accounts WHERE Email = ?`;
         con.query(checkEmail, [email], (err, result, fields) => {
             if (!result.length) {
-                let token = createToken(email, 'user');
-                if(!token){
-                    return res.status(400).send("token not created");
-                }
-                const sql = `Insert Into Accounts (Name, Surname, Email, Password, token, phone) VALUES ( ?, ?, ?, ?, ?, ?)`
-                con.query(sql, [name, surname, email, hashed_password, token, phone], (err, result, fields) => {
+
+                const sql = `Insert Into Accounts (Name, Surname, Email, Password, phone) VALUES ( ?, ?, ?, ?, ?, ?)`
+                con.query(sql, [name, surname, email, hashed_password, phone], (err, result, fields) => {
                     if (err) {
                         res.status(400).send({ error: err });
                     } else {
+                        let token = createToken(result.insertId, email, 'user');
+                        if(!token){
+                            return res.status(400).send("token not created");
+                        }
                         sendingMail({
                             from: "no-reply@toefl-test.uz",
                             to: `${email}`,
@@ -141,7 +142,7 @@ exports.login = (req, res, next) => {
                     } else if(result[0].is_verified === 0){
                         return res.status(401).send({error: "Please verify your email!"});
                     }
-                    let token = createToken(email, result[0].permissions);
+                    let token = createToken(result[0].id, email, result[0].permissions);
                     res.send({ status: 1, data: result[0], token: token });
                 }
 
@@ -203,26 +204,29 @@ exports.checkDateAvailability = (req, res) => {
         const requestedDate = req.query.date; // assuming date is sent in the request body
         const sql = `SELECT date, freespace FROM Exams WHERE date = ?`;
         con.query(
-            sql, [requestedDate],
-            function (err, result, fields) {
+            sql, [requestedDate], (err, result, fields) => {
                 if (err) {
-                    res.send({ status: 0, data: err });
+                    return res.send({ status: 0, data: err });
                 } else {
                     if(result.length > 0) {
-                        res.send({ status: 1, data: result[0] });
+                        return res.send({ status: 1, data: result[0] });
                     } else {
-                        res.send({ status: 1, data: {date: requestedDate, freespace: -1} });
+                        return res.send({ status: 1, data: {date: requestedDate, freespace: -1} });
                     }
                 }
-            })
+            });
     } catch (error) {
-        res.send({ status: 0, error: error });
+        return res.send({ status: 0, error: error });
     }
 }
 
 exports.getAllDateAvailability = (req, res) => {
     try {
-        const sql = `SELECT DATE_FORMAT(date, '%Y-%m-%d') as date, freespace FROM Exams`;
+        var type = req.query.type;
+        let sql = `SELECT exam_id, DATE_FORMAT(date, '%Y-%m-%d') as date, freespace, description, type FROM Exams`;
+        if(type){
+            sql += ` WHERE type = '${type}'`;
+        }
         con.query(
             sql, [],
             function (err, result, fields) {
