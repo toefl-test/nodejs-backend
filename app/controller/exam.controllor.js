@@ -20,7 +20,10 @@ exports.registerExam = (req, res) => {
 
 exports.getAllExamsForUser = (req, res) => {
     try {
-        const id = req.decoded.id;
+        let id = req.decoded.id;
+        if(req.decoded.permissions == 'ADMIN'){
+            id = req.params.id;
+        }
 
         let sql = `SELECT Exams.*, AccountExam.score FROM Exams
                    JOIN AccountExam ON Exams.exam_id = AccountExam.exam_id

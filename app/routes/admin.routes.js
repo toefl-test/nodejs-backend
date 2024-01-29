@@ -12,7 +12,7 @@ module.exports = app => {
     router.post("/updateAnyItem", verifyAdminToken, controller.updateAnyRow);
     router.post("/addAnyItem", verifyAdminToken, controller.addAnyRow);
     router.post("/allAnyTable", verifyAdminToken, controller.allAnyTable);
-    // router.get("/getExamsByUser/:id", verifyToken, exams.getAllExamsForUser);
+    router.get("/getExamsByUser/:id", verifyAdminToken, exams.getAllExamsForUser);
     router.get("/getAllAccountsForExam/:id", verifyAdminToken, exams.getAllAccountsForExam);
     router.post("/updateScores", verifyAdminToken, exams.updateScores);
     app.use('/admin', router);
