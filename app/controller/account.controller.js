@@ -64,15 +64,16 @@ exports.registerEmail = (req, res, next) => {
     try {
         let { name, surname, email, password, phone} = req.body;
 
-        const hashed_password = md5(password.toString())
+        const hashed_password = md5(password.toString());
         const checkEmail = `SELECT Email FROM Accounts WHERE Email = ?`;
         con.query(checkEmail, [email], (err, result, fields) => {
             if (!result.length) {
 
-                const sql = `Insert Into Accounts (Name, Surname, Email, Password, phone) VALUES ( ?, ?, ?, ?, ?, ?)`
+                const sql = `Insert Into Accounts (Name, Surname, Email, Password, phone) VALUES ( ?, ?, ?, ?, ?)`;
+                console.log(sql, [name, surname, email, hashed_password, phone]);
                 con.query(sql, [name, surname, email, hashed_password, phone], (err, result, fields) => {
                     if (err) {
-                        res.status(400).send({ error: err });
+                        return res.status(400).send({ error: err });
                     } else {
                         let token = createToken(result.insertId, email, 'user');
                         if(!token){
@@ -93,7 +94,7 @@ exports.registerEmail = (req, res, next) => {
         });
     } catch (error) {
         console.log(error);
-        res.status(404).send({ error: error.message });
+        return res.status(404).send({ error: error.message });
     }
 }
 
