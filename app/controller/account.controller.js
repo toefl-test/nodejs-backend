@@ -9,56 +9,7 @@ const uuid = require('uuid');
 const {sendingMail} = require('./mailing.controller');
 const {createToken} = require("../services/auth.service");
 
-// Create and Save a new Tutorial
-// exports.register = (req, res, next) => {
-//     try {
-//         let { name, surname, email, password, date} = req.body;
-//         // Get the file that was set to our field named "image"
-//         const { image } = req.files;
-//         if (req.files && !image.mimetype.startsWith('image')) return res.send({ status: 0, error: "File is not an image!" });
-//
-//         const hashed_password = email
-//         const checkEmail = `SELECT Email FROM Accounts WHERE Email = ?`;
-//         con.query(checkEmail, [email], (err, result, fields) => {
-//             console.log(result)
-//             if (!result.length) {
-//                 let token = createToken(email, 'user');
-//                 const sql = `Insert Into Accounts (Name, Surname, Email, Password, exam_date, token) VALUES ( ?, ?, ?, ?, ?, ?)`
-//                 con.query(sql, [name, surname, email, hashed_password, date, token], (err, result, fields) => {
-//                     if (err) {
-//                         res.send({ status: 0, data: err });
-//                     } else {
-//
-//                         // Move the uploaded image to our upload folder
-//                         if(req.files && image){
-//                             let imgPath = path.join(uploadPath, email+'.jpg');
-//                             image.mv(imgPath);
-//                         }
-//                         if (token) {
-//                             //send email to the user
-//                             //with the function coming from the mailing.js file
-//                             //message containing the user id and the token to help verify their email
-//                             sendingMail({
-//                                 from: "no-reply@toefl-test.uz",
-//                                 to: `${email}`,
-//                                 subject: "Account Verification Link",
-//                                 text: `Hello, ${name} Please verify your email by clicking this link :
-//                                         ${process.env.url}/account/verify-email/${token} `,
-//                             });
-//                         } else{
-//                             return res.status(400).send("token not created");
-//                         }
-//                         return res.status(201).send({ status: 1, data: result });
-//                     }
-//                 })
-//             } else {
-//                 res.send({status: 0, error: "Email already exist!"})
-//             }
-//         });
-//     } catch (error) {
-//         res.send({ status: 0, error: error });
-//     }
-// }
+const mailToSend = process.env.EMAIL_TO_SEND ?? 'info@toefl-test.uz';
 
 exports.registerEmail = (req, res, next) => {
     try {
@@ -373,6 +324,22 @@ exports.updateProfile = (req, res) => {
     } catch (error) {
         res.status(404).send({ error: error });
     }
+}
+
+
+exports.sendContactFormFromUser = (req, res) => {
+
+    let { fullName, email, subject, message } = req.body;
+    try{
+        sendingMail({
+            from: 'info@toefl-test.uz',
+            to: mailToSend,
+            subject: `${subject} - ${fullName}`,
+            text: `${message}\n\n\nfrom:${email}`,
+        });
+    } catch (e){
+    }
+    return res.status(200).send({message: "Your message has been sent!"});
 }
 
 function renderUserList(users) {

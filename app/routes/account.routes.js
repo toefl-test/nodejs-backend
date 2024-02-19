@@ -37,5 +37,7 @@ module.exports = app => {
 
     router.post("/updateProfile/:id", accounts.updateProfile);
 
+    router.post("/sendContactForm", accounts.sendContactFormFromUser);
+
     app.use('/account', router);
 };
