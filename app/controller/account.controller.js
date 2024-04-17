@@ -175,7 +175,7 @@ exports.checkDateAvailability = (req, res) => {
 exports.getAllDateAvailability = (req, res) => {
     try {
         var type = req.query.type;
-        let sql = `SELECT exam_id, DATE_FORMAT(date, '%Y-%m-%d') as date, freespace, description, type FROM Exams`;
+        let sql = `SELECT exam_id, DATE_FORMAT(date, '%Y-%m-%d') as date, time, freespace, description, type FROM Exams`;
         if(type){
             sql += ` WHERE type = '${type}'`;
         }
