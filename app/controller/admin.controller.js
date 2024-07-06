@@ -22,6 +22,13 @@ exports.allAnyTable = (req, res) => {
             if(err) {
                 return res.status(500).send({ error: err });
             } else {
+                result.forEach((item) => {
+                    for (let key in item) {
+                        if(key.includes('date')) {
+                            item[key] = item[key].toLocaleDateString();
+                        }
+                    }
+                });
                 return res.status(200).send({ items: result });
             }
         });

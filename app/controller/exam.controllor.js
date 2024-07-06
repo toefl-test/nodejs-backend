@@ -5,14 +5,22 @@ exports.registerExam = (req, res) => {
         const { account_id, exam_id } = req.body;
 
         let sql = `INSERT INTO AccountExam (account_id, exam_id) VALUES (?, ?);`;
-        con.query(sql, [account_id, exam_id], function(updateErr, updateResult) {
-            if(updateErr) {
+        con.query(sql, [account_id, exam_id], function (updateErr, updateResult) {
+            if (updateErr) {
+                console.log(updateErr);
                 return res.status(500).send({ error: "You already registered for the exam!" });
-            } else {
-                return res.status(200).send({ message: "Successfully registered exam!" });
             }
+
+            sql = `UPDATE Exams SET freespace=(freespace - 1) WHERE exam_id=${exam_id};`;
+            con.query(sql, function (err, result) {
+                if (err) {
+                    return res.status(500).send({ error: err });
+                }
+                return res.status(200).send({ message: "Successfully registered exam!" });
+            });
+
         });
-        
+
     } catch (error) {
         res.status(404).send({ error: error });
     }
@@ -21,7 +29,7 @@ exports.registerExam = (req, res) => {
 exports.getAllExamsForUser = (req, res) => {
     try {
         let id = req.decoded.id;
-        if(req.decoded.permissions === 'ADMIN'){
+        if (req.decoded.permissions === 'ADMIN') {
             id = req.params.id;
         }
 
@@ -33,8 +41,8 @@ exports.getAllExamsForUser = (req, res) => {
                             AccountExam.payment FROM Exams
                    JOIN AccountExam ON Exams.exam_id = AccountExam.exam_id
                    WHERE AccountExam.account_id = ?;`;
-        con.query(sql, [id], function(err, result) {
-            if(err) {
+        con.query(sql, [id], function (err, result) {
+            if (err) {
                 return res.status(500).send({ error: err });
             } else {
                 return res.status(200).send({ exams: result });
@@ -61,14 +69,14 @@ exports.getAllAccountsForExam = (req, res) => {
                    WHERE AccountExam.exam_id = ?;`;
         con.query(sql, [id], function (err, result) {
             if (err) {
-                return res.status(500).send({error: err});
+                return res.status(500).send({ error: err });
             } else {
-                return res.status(200).send({accounts: result});
+                return res.status(200).send({ accounts: result });
             }
         });
 
     } catch (error) {
-        res.status(404).send({error: error});
+        res.status(404).send({ error: error });
     }
 }
 
@@ -81,17 +89,17 @@ exports.updateScores = (req, res) => {
                        SET reading = ?, listening = ?, writing = ?, speaking = ?, payment = ?
                        WHERE account_id = ? AND exam_id = ?;`;
             con.query(sql, [score.reading,
-                            score.listening,
-                            score.writing,
-                            score.speaking,
-                            score.payment,
-                            score.account_id,
-                            score.exam_id],
-                function(err, result) {
-                    if(err) {
+            score.listening,
+            score.writing,
+            score.speaking,
+            score.payment,
+            score.account_id,
+            score.exam_id],
+                function (err, result) {
+                    if (err) {
                         return res.status(500).send({ error: err });
                     }
-            });
+                });
         });
 
         return res.status(200).send({ message: 'Scores updated successfully.' });
@@ -107,7 +115,7 @@ exports.uploadCertificateFile = (req, res) => {
         const { account_id, exam_id } = req.body;
         const { file } = req.files;
         // Move the uploaded image to our upload folder
-        if(req.files && file){
+        if (req.files && file) {
             let filePath = path.join(uploadPath, `account_id.pdf`);
             file.mv(imgPath);
         }
